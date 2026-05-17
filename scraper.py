@@ -14,6 +14,7 @@ URL = "https://www.nepremicnine.net/oglasi-prodaja/ljubljana-okolica/posest/zazi
 USER_AGENT = "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36"
 PRICE_RE = re.compile(r"\b\d{1,3}(?:[.\s]\d{3})*(?:,\d+)?\s*EUR\b", re.IGNORECASE)
 SIZE_RE = re.compile(r"\b\d{1,3}(?:[.\s]\d{3})*(?:,\d+)?\s*m2\b", re.IGNORECASE)
+PLAYWRIGHT_TIMEOUT_MS = 60_000
 
 
 @dataclass
@@ -64,7 +65,7 @@ def fetch_with_playwright(url: str) -> str:
     with sync_playwright() as p:
         browser = p.chromium.launch(headless=True)
         page = browser.new_page(user_agent=USER_AGENT)
-        page.goto(url, wait_until="networkidle", timeout=60_000)
+        page.goto(url, wait_until="networkidle", timeout=PLAYWRIGHT_TIMEOUT_MS)
         html = page.content()
         browser.close()
         return html
@@ -75,7 +76,7 @@ def _playwright_error_type() -> type[Exception]:
         from playwright.sync_api import Error as PlaywrightError
 
         return PlaywrightError
-    except Exception:  # playwright may not be installed in requests-only environments
+    except ImportError:  # playwright may not be installed in requests-only environments
         return RuntimeError
 
 

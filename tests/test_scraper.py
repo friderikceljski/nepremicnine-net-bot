@@ -1,3 +1,4 @@
+import pytest
 from scraper import parse_properties_from_html, scrape
 
 
@@ -72,11 +73,10 @@ def test_scrape_error_lists_methods(monkeypatch):
     monkeypatch.setattr("scraper.fetch_with_requests", lambda _url: _raise(RuntimeError("fail1")))
     monkeypatch.setattr("scraper.fetch_with_playwright", lambda _url: _raise(RuntimeError("fail2")))
 
-    try:
+    with pytest.raises(RuntimeError) as exc_info:
         scrape("https://example.com", ["requests", "playwright"])
-    except RuntimeError as exc:
-        assert "methods ['requests', 'playwright']" in str(exc)
-        assert "requests: fail1" in str(exc)
-        assert "playwright: fail2" in str(exc)
-    else:
-        raise AssertionError("Expected RuntimeError")
+
+    message = str(exc_info.value)
+    assert "methods ['requests', 'playwright']" in message
+    assert "requests: fail1" in message
+    assert "playwright: fail2" in message
