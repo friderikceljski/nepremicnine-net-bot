@@ -47,6 +47,23 @@ def test_parse_properties_from_html_handles_space_thousand_separator():
     assert result[0].size_m2 == "1 100 m2"
 
 
+def test_parse_properties_from_html_prefers_h6_price_and_size_list():
+    html = """
+    <div class="property-details">
+      <a class="url-title-d" title="Parcela 2"></a>
+      <h6>27,00 €/m2</h6>
+      <ul itemprop="disambiguatingDescription">
+        <li><img src="x" alt="">4.490,00 m<sup>2</sup></li>
+      </ul>
+    </div>
+    """
+
+    result = parse_properties_from_html(html)
+
+    assert result[0].price == "27,00 €/m2"
+    assert result[0].size_m2 == "4.490,00 m 2"
+
+
 def _raise(exc: Exception):
     raise exc
 
