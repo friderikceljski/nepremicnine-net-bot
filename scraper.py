@@ -12,7 +12,7 @@ from bs4 import BeautifulSoup, Tag
 
 URL = "https://www.nepremicnine.net/oglasi-prodaja/ljubljana-okolica/posest/zazidljiva/cena-od-100000-do-200000-eur,velikost-od-1000-do-2000-m2/"
 USER_AGENT = "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36"
-PRICE_RE = re.compile(r"\b\d{1,3}(?:[.\s]\d{3})*(?:,\d+)?\s*(?:EUR|€/m2)\b", re.IGNORECASE)
+PRICE_RE = re.compile(r"\b\d{1,3}(?:[.\s]\d{3})*(?:,\d+)?\s*(?:EUR|€\s*/\s*m2)\b", re.IGNORECASE)
 SIZE_RE = re.compile(r"\b\d{1,3}(?:[.\s]\d{3})*(?:,\d+)?\s*m\s*(?:2|²)\b", re.IGNORECASE)
 PLAYWRIGHT_TIMEOUT_MS = 60_000
 
@@ -27,6 +27,10 @@ class Property:
 def _first_match(regex: re.Pattern[str], text: str) -> str:
     match = regex.search(text)
     return match.group(0).strip() if match else ""
+
+
+def _normalize_size(size_m2: str) -> str:
+    return re.sub(r"\bm\s+2\b", "m2", size_m2, flags=re.IGNORECASE)
 
 
 def parse_properties_from_html(html: str) -> List[Property]:
@@ -53,6 +57,7 @@ def parse_properties_from_html(html: str) -> List[Property]:
             size_m2 = _first_match(SIZE_RE, size_list.get_text(" ", strip=True))
         if not size_m2:
             size_m2 = _first_match(SIZE_RE, raw_text)
+        size_m2 = _normalize_size(size_m2)
 
         if name:
             properties.append(Property(name=name, price=price, size_m2=size_m2))
