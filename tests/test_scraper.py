@@ -46,6 +46,10 @@ def test_parse_properties_from_html_handles_space_thousand_separator():
     assert result[0].size_m2 == "1 100 m2"
 
 
+def _raise(exc: Exception):
+    raise exc
+
+
 def test_scrape_falls_back_to_second_method(monkeypatch):
     html = """
     <div class=\"property-details\">
@@ -55,7 +59,7 @@ def test_scrape_falls_back_to_second_method(monkeypatch):
     </div>
     """
 
-    monkeypatch.setattr("scraper.fetch_with_requests", lambda _url: (_ for _ in ()).throw(RuntimeError("blocked")))
+    monkeypatch.setattr("scraper.fetch_with_requests", lambda _url: _raise(RuntimeError("blocked")))
     monkeypatch.setattr("scraper.fetch_with_playwright", lambda _url: html)
 
     result = scrape("https://example.com", ["requests", "playwright"])
@@ -65,8 +69,8 @@ def test_scrape_falls_back_to_second_method(monkeypatch):
 
 
 def test_scrape_error_lists_methods(monkeypatch):
-    monkeypatch.setattr("scraper.fetch_with_requests", lambda _url: (_ for _ in ()).throw(RuntimeError("fail1")))
-    monkeypatch.setattr("scraper.fetch_with_playwright", lambda _url: (_ for _ in ()).throw(RuntimeError("fail2")))
+    monkeypatch.setattr("scraper.fetch_with_requests", lambda _url: _raise(RuntimeError("fail1")))
+    monkeypatch.setattr("scraper.fetch_with_playwright", lambda _url: _raise(RuntimeError("fail2")))
 
     try:
         scrape("https://example.com", ["requests", "playwright"])
