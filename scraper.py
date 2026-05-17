@@ -11,7 +11,7 @@ import requests
 from bs4 import BeautifulSoup, Tag
 
 URL = "https://www.nepremicnine.net/oglasi-prodaja/ljubljana-okolica/posest/zazidljiva/cena-od-100000-do-200000-eur,velikost-od-1000-do-2000-m2/"
-USER_AGENT = "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/123.0.0.0 Safari/537.36"
+USER_AGENT = "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36"
 PRICE_RE = re.compile(r"\b\d{1,3}(?:[.\s]\d{3})*(?:,\d+)?\s*EUR\b", re.IGNORECASE)
 SIZE_RE = re.compile(r"\b\d{1,3}(?:[.\s]\d{3})*(?:,\d+)?\s*m2\b", re.IGNORECASE)
 
@@ -41,7 +41,8 @@ def parse_properties_from_html(html: str) -> List[Property]:
             continue
 
         raw_text = " ".join(details.stripped_strings)
-        name = title_anchor.get("title", "").strip()
+        title = title_anchor.get("title", "")
+        name = " ".join(title).strip() if isinstance(title, list) else str(title).strip()
         price = _first_match(PRICE_RE, raw_text)
         size_m2 = _first_match(SIZE_RE, raw_text)
 
