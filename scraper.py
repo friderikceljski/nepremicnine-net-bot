@@ -12,8 +12,8 @@ from bs4 import BeautifulSoup, Tag
 
 URL = "https://www.nepremicnine.net/oglasi-prodaja/ljubljana-okolica/posest/zazidljiva/cena-od-100000-do-200000-eur,velikost-od-1000-do-2000-m2/"
 USER_AGENT = "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36"
-PRICE_RE = re.compile(r"\b\d{1,3}(?:[.\s]\d{3})*(?:,\d+)?\s*EUR\b", re.IGNORECASE)
-SIZE_RE = re.compile(r"\b\d{1,3}(?:[.\s]\d{3})*(?:,\d+)?\s*m2\b", re.IGNORECASE)
+PRICE_RE = re.compile(r"\b\d{1,3}(?:[.\s]\d{3})*(?:,\d+)?\s*(?:EUR|€/m2)\b", re.IGNORECASE)
+SIZE_RE = re.compile(r"\b\d{1,3}(?:[.\s]\d{3})*(?:,\d+)?\s*m\s*(?:2|²)\b", re.IGNORECASE)
 PLAYWRIGHT_TIMEOUT_MS = 60_000
 
 
@@ -44,8 +44,15 @@ def parse_properties_from_html(html: str) -> List[Property]:
         raw_text = " ".join(details.stripped_strings)
         title = title_anchor.get("title", "")
         name = " ".join(title).strip() if isinstance(title, list) else str(title).strip()
-        price = _first_match(PRICE_RE, raw_text)
-        size_m2 = _first_match(SIZE_RE, raw_text)
+        price_node = details.select_one("h6")
+        price = price_node.get_text(" ", strip=True) if isinstance(price_node, Tag) else _first_match(PRICE_RE, raw_text)
+
+        size_m2 = ""
+        size_list = details.select_one('ul[itemprop="disambiguatingDescription"] li')
+        if isinstance(size_list, Tag):
+            size_m2 = _first_match(SIZE_RE, size_list.get_text(" ", strip=True))
+        if not size_m2:
+            size_m2 = _first_match(SIZE_RE, raw_text)
 
         if name:
             properties.append(Property(name=name, price=price, size_m2=size_m2))
