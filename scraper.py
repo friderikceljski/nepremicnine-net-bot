@@ -71,6 +71,7 @@ def fetch_with_playwright(url: str) -> str:
 
 
 def scrape(url: str, methods: Iterable[str]) -> List[Property]:
+    methods = list(methods)
     errors = []
 
     for method in methods:
@@ -83,7 +84,7 @@ def scrape(url: str, methods: Iterable[str]) -> List[Property]:
             errors.append(f"{method}: {exc}")
 
     details = " | ".join(errors) if errors else "No properties found"
-    raise RuntimeError(f"Scraping failed. {details}")
+    raise RuntimeError(f"Scraping failed after methods {methods}. {details}")
 
 
 def main() -> int:
