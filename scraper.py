@@ -30,7 +30,7 @@ def _first_match(regex: re.Pattern[str], text: str) -> str:
 
 
 def _normalize_size(size_m2: str) -> str:
-    return re.sub(r"\bm\s+2\b", "m2", size_m2, flags=re.IGNORECASE)
+    return re.sub(r"\bm\s*(?:2|²)\b", "m2", size_m2, flags=re.IGNORECASE)
 
 
 def parse_properties_from_html(html: str) -> List[Property]:
