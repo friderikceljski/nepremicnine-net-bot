@@ -5,7 +5,7 @@ import json
 import re
 import sys
 from dataclasses import dataclass, asdict
-from typing import Iterable, List, Optional
+from typing import Iterable, List
 
 import requests
 from bs4 import BeautifulSoup, Tag
@@ -70,9 +70,19 @@ def fetch_with_playwright(url: str) -> str:
         return html
 
 
+def _playwright_error_type() -> type[Exception]:
+    try:
+        from playwright.sync_api import Error as PlaywrightError
+
+        return PlaywrightError
+    except Exception:  # playwright may not be installed in requests-only environments
+        return RuntimeError
+
+
 def scrape(url: str, methods: Iterable[str]) -> List[Property]:
     methods = list(methods)
     errors = []
+    expected_errors = (requests.RequestException, RuntimeError, _playwright_error_type())
 
     for method in methods:
         try:
@@ -80,7 +90,7 @@ def scrape(url: str, methods: Iterable[str]) -> List[Property]:
             properties = parse_properties_from_html(html)
             if properties:
                 return properties
-        except Exception as exc:  # noqa: BLE001
+        except expected_errors as exc:
             errors.append(f"{method}: {exc}")
 
     details = " | ".join(errors) if errors else "No properties found"
@@ -102,7 +112,7 @@ def main() -> int:
 
     try:
         properties = scrape(args.url, methods)
-    except Exception as exc:  # noqa: BLE001
+    except RuntimeError as exc:
         print(str(exc), file=sys.stderr)
         return 1
 
