@@ -64,6 +64,22 @@ def test_parse_properties_from_html_prefers_h6_price_and_size_list():
     assert result[0].size_m2 == "4.490,00 m 2"
 
 
+def test_parse_properties_from_html_extracts_size_list_without_sup_spacing():
+    html = """
+    <div class="property-details">
+      <a class="url-title-d" title="Parcela 3"></a>
+      <h6>185.000 EUR</h6>
+      <ul itemprop="disambiguatingDescription">
+        <li>4.490,00 m2</li>
+      </ul>
+    </div>
+    """
+
+    result = parse_properties_from_html(html)
+
+    assert result[0].size_m2 == "4.490,00 m2"
+
+
 def _raise(exc: Exception):
     raise exc
 
