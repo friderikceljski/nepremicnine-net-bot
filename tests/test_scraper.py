@@ -61,7 +61,7 @@ def test_parse_properties_from_html_prefers_h6_price_and_size_list():
     result = parse_properties_from_html(html)
 
     assert result[0].price == "27,00 €/m2"
-    assert result[0].size_m2 == "4.490,00 m 2"
+    assert result[0].size_m2 == "4.490,00 m2"
 
 
 def test_parse_properties_from_html_extracts_size_list_without_sup_spacing():
